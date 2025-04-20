@@ -1,9 +1,11 @@
 import 'dart:developer';
 
+import 'package:equatable/equatable.dart';
 import 'package:injectable/injectable.dart';
 
+
 @injectable
-class CacheManager {
+class CacheManager extends Equatable {
   static final CacheManager _instance = CacheManager._internal();
 
   factory CacheManager() => _instance;
@@ -40,4 +42,7 @@ class CacheManager {
     _cache.clear();
     log("Cache cleared");
   }
+
+  @override
+  List<Object?> get props => [_cache];  // Use _cache for comparison if needed
 }

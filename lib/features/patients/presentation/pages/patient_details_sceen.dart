@@ -28,7 +28,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
     return BlocConsumer<PatientBloc, PatientState>(
       listener: (context, state) {
         if (state.actionStatus == Status.failure) {
-          _showErrorSnackBar(state.failure?.message ?? "خطأ بالاتصال، يرجى المحاولة مجددًا");
+          if (state.failure != null) _showErrorSnackBar(state.failure!.message);
         }
       },
       builder: (context, state) {
@@ -52,7 +52,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
               isLoading
                   ? const Center(child: CircularProgressIndicator())
                   : patient == null
-                  ? const Center(child: Text('المريض غير موجود'))
+                  ? const Center(child: CircularProgressIndicator())
                   : SingleChildScrollView(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,

@@ -2,6 +2,7 @@ import 'dart:developer';
 
 import 'package:dartz/dartz.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -25,6 +26,7 @@ import '../../domain/use_cases/get_patient.dart';
 import '../../domain/use_cases/update_patient.dart';
 
 part 'patients_event.dart';
+
 part 'patients_state.dart';
 
 @injectable
@@ -80,7 +82,7 @@ class PatientBloc extends Bloc<PatientEvent, PatientState> {
         final cachedPatients = _cacheManager.getData<List<Patient>>(key: CacheKeys.patients);
 
         if (cachedPatients?.isNotEmpty == true) {
-          emit(state.copyWith(uiStatus: Status.success, patients: cachedPatients, errorMessage: null));
+          emit(state.copyWith(uiStatus: Status.success, patients: List.of(cachedPatients!), errorMessage: null));
           return;
         }
 
@@ -101,20 +103,20 @@ class PatientBloc extends Bloc<PatientEvent, PatientState> {
     } else {
       final cachedPatients = _cacheManager.getData<List<Patient>>(key: CacheKeys.patients);
 
-      emit(state.copyWith(uiStatus: Status.success, patients: cachedPatients, errorMessage: null));
+      emit(state.copyWith(uiStatus: Status.success, patients: List.of(cachedPatients!), errorMessage: null));
     }
   }
 
   Future<void> _onFetchOne(PatientFetchOne event, Emitter<PatientState> emit) async {
     // Uses actionStatus only - shows dialog over existing UI
-    emit(state.copyWith(uiStatus: Status.loading, errorMessage: null, givenMeds: null));
+    emit(state.copyWith(uiStatus: Status.loading, errorMessage: null, givenMeds: null, selectedPatient: null, clearSelectedPatient: true));
 
-    // final Patient? patient = _cacheManager.getData(key: "${CacheKeys.patientID}_${event.patientId}");
-    //
-    // if (_cacheManager.getData(key: "${CacheKeys.patientID}_${event.patientId}") != null) {
-    //   emit(state.copyWith(uiStatus: Status.success, selectedPatient: patient, errorMessage: null));
-    //   return;
-    // }
+    final Patient? patient = _cacheManager.getData(key: "${CacheKeys.patientID}_${event.patientId}");
+
+    if (_cacheManager.getData(key: "${CacheKeys.patientID}_${event.patientId}") != null) {
+      emit(state.copyWith(uiStatus: Status.success, selectedPatient: patient, errorMessage: null));
+      return;
+    }
 
     final results = await Future.wait([_getPatient(event.patientId), _getGivenMeds(event.patientId)]);
 
@@ -172,26 +174,39 @@ class PatientBloc extends Bloc<PatientEvent, PatientState> {
 
     try {
       final result = await _updatePatient(event.patient);
-      result.fold((failure) {
-        print("LEFT, LEFT");
-        debugPrint("failure ${failure.message}");
-        emit(state.copyWith(actionStatus: Status.failure, errorMessage: failure.message));
+      result.fold(
+        (failure) {
+          print("LEFT, LEFT");
+          debugPrint("failure ${failure.message}");
+          emit(state.copyWith(actionStatus: Status.failure, errorMessage: failure.message));
+        },
+        (savedPatient) {
+          print("${savedPatient.id} savedPatient.id");
+          print("${state.selectedPatient?.id} selectedPatient.id");
 
-        }, (savedPatient) {
-        final old = state.patients.where((element) => element.id == savedPatient.id).first;
+          state.patients.remove(state.selectedPatient);
 
-        state.patients.remove(old);
+          final updated = state.patients;
+          updated.add(event.patient);
+          _cacheManager.cacheData(key: "${CacheKeys.patientID}_${savedPatient.id}", data: savedPatient);
+          _cacheManager.cacheData(key: CacheKeys.patients, data: List.of(updated));
 
-        final updated = state.patients..add(savedPatient);
-
-        _cacheManager.cacheData(key: "${CacheKeys.patientID}_${savedPatient.id}", data: savedPatient);
-        _cacheManager.cacheData(key: CacheKeys.patients, data: updated);
-
-        emit(state.copyWith(actionStatus: Status.success, patients: List.of(updated), selectedPatient: savedPatient, errorMessage: null, clearFailure: true));
-        ScaffoldMessenger.of(event.context).showSnackBar(const SnackBar(content: Text('تم تحديث بيانات المريض بنجاح')));
-      });
+          emit(
+            state.copyWith(
+              actionStatus: Status.success,
+              patients: List.of(updated),
+              selectedPatient: savedPatient,
+              errorMessage: null,
+              clearFailure: true,
+            ),
+          );
+          ScaffoldMessenger.of(event.context).showSnackBar(const SnackBar(content: Text('تم تحديث بيانات المريض بنجاح')));
+        },
+      );
     } catch (e) {
-      print("e.toString() ${e.toString()}");
+      if (kDebugMode) {
+        print("e.toString() ${e.toString()}");
+      }
       emit(state.copyWith(actionStatus: Status.failure, errorMessage: 'خطأ بالاتصال، يرجى المحاولة مجددًا'));
 
       emit(state.copyWith(actionStatus: Status.initial, uiStatus: Status.initial, errorMessage: null));
@@ -272,10 +287,18 @@ class PatientBloc extends Bloc<PatientEvent, PatientState> {
         emit(state.copyWith(actionStatus: Status.failure, errorMessage: null, clearFailure: true));
       },
       (r) {
-        final updated = List<GivenMedicine>.from(state.givenMeds);
-        updated.remove(state.givenMeds.where((element) => element?.id == event.id));
+        try {
+          final updated = List<GivenMedicine>.from(state.givenMeds);
+          updated.remove(state.givenMeds.where((element) => element?.id == event.id));
 
-        emit(state.copyWith(actionStatus: Status.success, errorMessage: null, clearFailure: true, givenMeds: updated));
+          emit(state.copyWith(actionStatus: Status.success, errorMessage: null, clearFailure: true, givenMeds: updated));
+        } catch (e) {
+          emit(state.copyWith(actionStatus: Status.failure, errorMessage: null, clearFailure: true));
+
+          if (kDebugMode) {
+            print("e.toString() ${e.toString()}");
+          }
+        }
       },
     );
   }

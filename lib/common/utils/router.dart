@@ -9,6 +9,7 @@ import 'package:patient_managment/features/patients/presentation/pages/patients_
 import 'package:patient_managment/features/patients/presentation/pages/report_screen.dart';
 
 import '../../features/home/home_screen.dart';
+import '../../features/patients/domain/use_cases/get_all_patients.dart';
 import '../../features/patients/presentation/manager/meds_bloc/meds_bloc.dart';
 import '../../features/patients/presentation/manager/patients_bloc.dart';
 import '../../features/patients/presentation/pages/add_patient_screen.dart';
@@ -38,7 +39,7 @@ class AppRouter {
             path: '/patients',
             builder: (context, state) {
               patientBloc == null ? patientBloc = di.getIt<PatientBloc>() : null;
-              return BlocProvider.value(value: patientBloc!, child: const PatientsScreen());
+              return BlocProvider.value(value: patientBloc!..add((const PatientFetchAll())), child: const PatientsScreen());
             },
           ),
 

@@ -84,15 +84,15 @@ class _AddEditPatientScreenState extends State<AddEditPatientScreen> {
         }
       },
       builder: (context, state) {
-        final isLoading = state.uiStatus == Status.loading;
+        // final isLoading = state.uiStatus == Status.loading;
         final isEditing = widget.patient != null || (state.selectedPatient != null && widget.patientId != null);
 
         return Scaffold(
           appBar: AppBar(title: Text(isEditing ? 'تعديل بيانات المريض' : 'إضافة مريض')),
           body:
-              isLoading && !_isInitialized
-                  ? const Center(child: CircularProgressIndicator())
-                  : SingleChildScrollView(
+              // isLoading && !_isInitialized
+              //     ? const Center(child: CircularProgressIndicator())
+                   SingleChildScrollView(
                     padding: const EdgeInsets.all(16.0),
                     child: Form(
                       key: _formKey,
@@ -190,13 +190,13 @@ class _AddEditPatientScreenState extends State<AddEditPatientScreen> {
                           ),
                           const SizedBox(height: 32),
                           ElevatedButton(
-                            onPressed:
-                                isLoading
-                                    ? null
-                                    : () {
-                                      if (!_formKey.currentState!.validate()) {
-                                        return;
-                                      }
+                            onPressed: () {
+                                // isLoading
+                                //     ? null
+                                //     : () {
+                                //       if (!_formKey.currentState!.validate()) {
+                                //         return;
+                                //       }
 
                                       if (isEditing) {
                                         final patientId = widget.patient?.id ?? state.selectedPatient?.id ?? widget.patientId!;

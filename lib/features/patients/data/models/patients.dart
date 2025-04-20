@@ -1,35 +1,31 @@
 import 'dart:convert';
+import 'dart:convert';
+import 'package:equatable/equatable.dart';
 
-Patient patientFromJson(str) => Patient.fromJson(str);
+Patient patientFromJson(str) => Patient.fromJson(json.decode(str));
 
 String patientModelToJson(Patient data) => json.encode(data.toJson());
 
-class Patient {
-  int? id;
-  String fullName;
-  int age;
-  String gender;
-  String? area;
-  String? mobileNumber;
-  // String? pastIllnesses;
-  String? status;
-  // DateTime? createdAt;
-  // DateTime? updatedAt;
-  int recordsCount;
-  String? lastVisit;
-  bool isWaiting;
+class Patient extends Equatable {
+  final int? id;
+  final String fullName;
+  final int age;
+  final String gender;
+  final String? area;
+  final String? mobileNumber;
+  final String? status;
+  final int recordsCount;
+  final String? lastVisit;
+  final bool isWaiting;
 
-  Patient({
+  const Patient({
     this.id,
     required this.fullName,
     required this.age,
     required this.gender,
     this.area,
     this.mobileNumber,
-    // this.pastIllnesses,
     this.status,
-    // this.createdAt,
-    // this.updatedAt,
     this.recordsCount = 0,
     this.lastVisit,
     required this.isWaiting,
@@ -37,14 +33,14 @@ class Patient {
 
   factory Patient.fromJson(Map<String, dynamic> json) {
     return Patient(
-      id: json['id'] ?? 0,  // Default to 0 if id is null
+      id: json['id'] ?? 0,
       fullName: json['full_name'] ?? '',
-      age: json['age'] ?? 0,  // Default to 0 if age is null
+      age: json['age'] ?? 0,
       gender: json['gender'] ?? '',
       area: json['area'],
       mobileNumber: json['mobile_number'],
       status: json['status'] ?? '',
-      recordsCount: json['records_count'] ?? 0,  // Default to 0 if records_count is null
+      recordsCount: json['records_count'] ?? 0,
       lastVisit: json['last_visit'] ?? '',
       isWaiting: json['is_waiting'] ?? false,
     );
@@ -58,13 +54,10 @@ class Patient {
       'gender': gender,
       'area': area,
       'mobile_number': mobileNumber,
-      // 'past_illnesses': pastIllnesses,
       'status': status,
-      // 'created_at': createdAt,
-      // 'updated_at': updatedAt,
       'records_count': recordsCount,
       'last_visit': lastVisit,
-      "is_waiting": isWaiting,
+      'is_waiting': isWaiting,
     };
   }
 
@@ -75,10 +68,7 @@ class Patient {
     String? gender,
     String? area,
     String? mobileNumber,
-    String? pastIllnesses,
     String? status,
-    // DateTime? createdAt,
-    // DateTime? updatedAt,
     int? recordsCount,
     String? lastVisit,
     bool? isWaiting,
@@ -90,13 +80,24 @@ class Patient {
       gender: gender ?? this.gender,
       area: area ?? this.area,
       mobileNumber: mobileNumber ?? this.mobileNumber,
-      // pastIllnesses: pastIllnesses ?? this.pastIllnesses,
       status: status ?? this.status,
-      // createdAt: createdAt ?? this.createdAt,
-      // updatedAt: updatedAt ?? this.updatedAt,
       recordsCount: recordsCount ?? this.recordsCount,
       lastVisit: lastVisit ?? this.lastVisit,
       isWaiting: isWaiting ?? this.isWaiting,
     );
   }
+
+  @override
+  List<Object?> get props => [
+    id,
+    fullName,
+    age,
+    gender,
+    area,
+    mobileNumber,
+    status,
+    recordsCount,
+    lastVisit,
+    isWaiting,
+  ];
 }
