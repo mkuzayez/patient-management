@@ -261,9 +261,8 @@ class AddMedDialog extends StatefulWidget {
 
 class _AddMedDialogState extends State<AddMedDialog> {
   late Medicine _selectedMed;
-  final TextEditingController _medController = TextEditingController();
-  final TextEditingController _quantityController = TextEditingController();
-  final TextEditingController _dosageController = TextEditingController();
+   TextEditingController _medController = TextEditingController();
+   final TextEditingController _quantityController = TextEditingController();
 
   void _showErrorSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message), backgroundColor: Colors.red));
@@ -301,6 +300,7 @@ class _AddMedDialogState extends State<AddMedDialog> {
                       suggestionsCallback:
                           (search) => state.allMeds.where((element) => element!.name.toLowerCase().contains(search.toLowerCase())).toList(),
                       builder: (context, controller, focusNode) {
+                        _medController = controller;
                         return TextField(
                           controller: _medController,
                           focusNode: focusNode,
