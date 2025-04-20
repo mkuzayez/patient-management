@@ -30,6 +30,10 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
         if (state.actionStatus == Status.failure) {
           if (state.failure != null) _showErrorSnackBar(state.failure!.message);
         }
+
+        if (state.actionStatus == Status.success) {
+          if (state.failure != null) _showErrorSnackBar(state.failure!.message);
+        }
       },
       builder: (context, state) {
         final isLoading = state.uiStatus == Status.loading;

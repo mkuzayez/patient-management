@@ -82,7 +82,7 @@ class AppRouter {
 
       GoRoute(
         path: '/patients/add-patient',
-        builder: (context, state) => BlocProvider.value(value: patientBloc!, child: const AddEditPatientScreen()),
+        builder: (context, state) => BlocProvider.value(value: patientBloc!, child: const AddEditPatientScreen(patient: null, shouldInit: false,)),
       ),
 
       GoRoute(

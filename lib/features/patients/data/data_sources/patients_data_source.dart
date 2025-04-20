@@ -40,7 +40,7 @@ class PatientDataSource with ApiHandler {
   }
 
   Future<Either<Failure, Patient>> createPatient(Patient patient) {
-    return handleApiCall(apiCall: () => httpClient.post('patients/', data: patient.toJson()), jsonConvert: (data) => Patient.fromJson(data));
+    return handleApiCall(apiCall: () => httpClient.post('patients/', data: patient.toJson()), jsonConvert: (data) => Patient.fromJson(data['data']));
   }
 
   Future<Either<Failure, Patient>> updatePatient(Patient patient) {

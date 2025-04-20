@@ -142,6 +142,8 @@ class PatientBloc extends Bloc<PatientEvent, PatientState> {
 
     result.fold((failure) => emit(state.copyWith(actionStatus: Status.failure, errorMessage: failure.message)), (newPatient) {
       final updatedPatients = List<Patient>.from(state.patients)..add(newPatient);
+      _cacheManager.cacheData(key: CacheKeys.patients, data: List.of(updatedPatients));
+
       emit(state.copyWith(actionStatus: Status.success, patients: updatedPatients, selectedPatient: newPatient, errorMessage: null));
       ScaffoldMessenger.of(event.context).showSnackBar(const SnackBar(content: Text('تم إضافة بيانات المريض بنجاح')));
       event.context.pop();

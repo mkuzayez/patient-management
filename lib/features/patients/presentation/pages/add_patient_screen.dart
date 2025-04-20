@@ -9,8 +9,9 @@ import '../manager/patients_bloc.dart';
 class AddEditPatientScreen extends StatefulWidget {
   final Patient? patient;
   final int? patientId;
+  final bool shouldInit;
 
-  const AddEditPatientScreen({super.key, this.patient, this.patientId});
+  const AddEditPatientScreen({super.key, this.patient, this.patientId, this.shouldInit = true});
 
   @override
   State<AddEditPatientScreen> createState() => _AddEditPatientScreenState();
@@ -72,7 +73,7 @@ class _AddEditPatientScreenState extends State<AddEditPatientScreen> {
 
         if (state.uiStatus == Status.success) {
           // If we're fetching a patient
-          if (state.selectedPatient != null && !_isInitialized && widget.patient == null) {
+          if (state.selectedPatient != null && !_isInitialized && widget.patient == null && widget.shouldInit == true) {
             _initializeFormWithPatient(state.selectedPatient!);
             _isInitialized = true;
           }
@@ -226,7 +227,7 @@ class _AddEditPatientScreenState extends State<AddEditPatientScreen> {
                                               isWaiting: false,
                                               area: _areaController.text,
                                               // pastIllnesses: _pastIllnessesController.text,
-                                              status: _status == 'فعال' ? 'active' : 'not-active',
+                                              status: _status == 'فعال' ? 'active' : 'inactive',
                                               mobileNumber: _mobileNumberController.text,
                                             ),
                                             context,

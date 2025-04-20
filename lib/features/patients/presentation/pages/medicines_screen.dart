@@ -51,7 +51,7 @@ class MedicinesScreen extends StatelessWidget {
                       children: [
                         if (med.scientificName != null && med.scientificName!.isNotEmpty)
                           TextSpan(text: "الاسم العلمي: ${med.scientificName}\n"),
-                        TextSpan(text: "الجرعة: ${med.dose}"),
+                        TextSpan(text: "العيار: ${med.dose}"),
                       ],
                     ),
                   ),
@@ -108,7 +108,7 @@ class MedicinesScreen extends StatelessWidget {
                             onPressed: () {
                               Navigator.of(ctx).pop();
                             },
-                            child: const Text("Cancel"),
+                            child: const Text("إلغاء"),
                           ),
                         ElevatedButton(
                           onPressed:
@@ -125,7 +125,7 @@ class MedicinesScreen extends StatelessWidget {
                                       ),
                                     );
                                   },
-                          child: const Text("Add"),
+                          child: const Text("إضافة"),
                         ),
                       ],
                     );
