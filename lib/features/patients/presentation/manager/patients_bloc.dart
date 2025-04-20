@@ -283,15 +283,18 @@ class PatientBloc extends Bloc<PatientEvent, PatientState> {
     final result = await deleteGivenMed(event.id);
 
     result.fold(
-      (l) {
+          (l) {
+            if (kDebugMode) {
+              print("l.message ${l.message}");
+            }
         emit(state.copyWith(actionStatus: Status.failure, errorMessage: null, clearFailure: true));
       },
-      (r) {
+          (r) {
         try {
           final updated = List<GivenMedicine>.from(state.givenMeds);
-          updated.remove(state.givenMeds.where((element) => element?.id == event.id));
+          updated.removeWhere((element) => element.id == event.id);
 
-          emit(state.copyWith(actionStatus: Status.success, errorMessage: null, clearFailure: true, givenMeds: updated));
+          emit(state.copyWith(actionStatus: Status.success, givenMeds: updated));
         } catch (e) {
           emit(state.copyWith(actionStatus: Status.failure, errorMessage: null, clearFailure: true));
 
@@ -302,4 +305,5 @@ class PatientBloc extends Bloc<PatientEvent, PatientState> {
       },
     );
   }
+
 }

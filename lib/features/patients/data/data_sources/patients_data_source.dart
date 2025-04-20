@@ -68,13 +68,13 @@ class PatientDataSource with ApiHandler {
     return handleApiCall(
       apiCall: () => httpClient.post('/given-medicines/', data: {"patient": patientId, "medicine": medID, "quantity": quantity, "dosage": dosage}),
       jsonConvert: (data) {
-        return GivenMedicine.fromJson(data);
+        return GivenMedicine.fromJson(data['data']);
       },
     );
   }
 
   Future<Either<Failure, Unit>> deleteMed(int id) {
-    return handleApiCall(apiCall: () => httpClient.delete('/given-medicines/$id'));
+    return handleApiCall(apiCall: () => httpClient.delete('/given-medicines/$id/'), returnData: false);
   }
 
   Future<Either<Failure, List<Medicine>>> getAllMeds() {

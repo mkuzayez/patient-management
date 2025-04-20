@@ -35,14 +35,13 @@ class GivenMedicine {
 
   factory GivenMedicine.fromJson(Map<String, dynamic> json) {
     return GivenMedicine(
-      id: json['id'],
-      patient: json['patient'],
-      prescribedMedicine: json['prescribed_medicine'],
-
-      quantity: json['quantity'],
-      givenAt: json['given_at'],
-      medicineName: json['medicine_name'],
-      totalPrice: json['total_price'],
+      id: json['id'] ?? 0,
+      patient: json['patient'] ?? 0,
+      prescribedMedicine: json['prescribed_medicine'] ?? 0,
+      quantity: json['quantity'] ?? 0,
+      givenAt: json['given_at'] ?? '',
+      medicineName: json['medicine_name'] ?? '',
+      totalPrice: json['total_price'] ?? '',
     );
   }
 
