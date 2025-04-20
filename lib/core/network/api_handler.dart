@@ -9,6 +9,8 @@ mixin ApiHandler {
   Future<Either<Failure, T>> handleApiCall<T>({required Future<Response> Function() apiCall, FromJson<T>? jsonConvert}) async {
     try {
       final response = await apiCall();
+
+      print("RESPONSE ${response.data}");
       if ((response.statusCode == 200 || response.statusCode == 201 || response.statusCode == 202) && jsonConvert == null) return Right(response.data);
       if ((response.statusCode == 200 || response.statusCode == 201 || response.statusCode == 202)  && jsonConvert != null) return Right(jsonConvert(response.data));
 

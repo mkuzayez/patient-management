@@ -39,9 +39,11 @@ class _HomeScreenState extends State<HomeScreen> {
         context.pushReplacement('/patients');
         break;
       case 1:
-        context.pushReplacement('/patients/waitlist');
+        context.pushReplacement('/meds');
         break;
-
+      case 2:
+        context.pushReplacement('/report');
+        break;
     }
   }
 
@@ -59,12 +61,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
     // Reception role gets the full navigation
     return Scaffold(
-      appBar: AppBar(title: const Text(AppConstants.appName, style: TextStyle(color: Colors.white)), backgroundColor: Colors.blue),
+      appBar: AppBar(title:  const Text('إدارة المرضى', style: TextStyle(color: Colors.white)), backgroundColor: Colors.blue),
       body: widget.child,
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(icon: Icon(Icons.people), label: 'المرضى'),
-          BottomNavigationBarItem(icon: Icon(Icons.history), label: 'قائمة الانتظار'), // Changed to history
+          BottomNavigationBarItem(icon: Icon(Icons.medical_information), label: 'الأدوية'), // Changed to history
+          BottomNavigationBarItem(icon: Icon(Icons.request_page_outlined), label: 'التقرير'),
           // Removed medicines and records for reception
         ],
         currentIndex: _currentIndex,

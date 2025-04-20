@@ -34,8 +34,9 @@ class PatientSearch extends PatientEvent {
 
 class PatientCreate extends PatientEvent {
   final Patient patient;
+  final BuildContext context;
 
-  const PatientCreate(this.patient);
+  const PatientCreate(this.patient, this.context);
 
   @override
   List<Object?> get props => [patient];
@@ -43,8 +44,9 @@ class PatientCreate extends PatientEvent {
 
 class PatientUpdate extends PatientEvent {
   final Patient patient;
+  final BuildContext context;
 
-  const PatientUpdate({required this.patient});
+  const PatientUpdate({required this.patient, required this.context});
 
   @override
   List<Object?> get props => [patient];
@@ -57,4 +59,42 @@ class PatientDelete extends PatientEvent {
 
   @override
   List<Object?> get props => [patientId];
+}
+
+class GivenMedsFetchAll extends PatientEvent {
+  final int id;
+
+  const GivenMedsFetchAll({required this.id});
+
+  @override
+  List<Object?> get props => [id];
+}
+
+class MedsFetchAll extends PatientEvent {
+  const MedsFetchAll();
+
+  @override
+  List<Object?> get props => [];
+}
+
+class AddGivenMed extends PatientEvent {
+  final int patientId;
+  final int medId;
+  final int quantity;
+  final String dosage;
+  final BuildContext context;
+
+  const AddGivenMed({required this.patientId, required this.medId, required this.quantity, required this.dosage, required this.context});
+
+  @override
+  List<Object?> get props => [id];
+}
+
+class DeleteGivenMedEvent extends PatientEvent {
+  final int id;
+
+  const DeleteGivenMedEvent({required this.id});
+
+  @override
+  List<Object?> get props => [id];
 }

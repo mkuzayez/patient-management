@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 import '../manager/patients_bloc.dart';
 
@@ -11,18 +12,20 @@ class PatientCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    switch (isFromWaitlist) {
-      case true:
-        return context.read<PatientBloc>().state.patients[index].isWaiting == false ? const SizedBox.shrink() : _card(context: context, index: index);
-
-      case false:
-        return context.read<PatientBloc>().state.patients[index].isWaiting == true ? const SizedBox.shrink() : _card(context: context, index: index);
-    }
+    // switch (isFromWaitlist) {
+    //   case true:
+    //     return context.read<PatientBloc>().state.patients[index].isWaiting == false ? const SizedBox.shrink() : _card(context: context, index: index);
+    //
+    //   case false:
+    //     return context.read<PatientBloc>().state.patients[index].isWaiting == true ? const SizedBox.shrink() : _card(context: context, index: index);
+    // }
+    return _card(context: context, index: index);
   }
 }
 
 Widget _card({required BuildContext context, required int index}) {
   return GestureDetector(
+    onTap: () => GoRouterHelper(context).push('/patients/details/${context.read<PatientBloc>().state.patients[index].id}'),
     child: Card(
       color: Colors.white,
       shadowColor: Colors.black,
@@ -45,15 +48,15 @@ Widget _card({required BuildContext context, required int index}) {
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
-
-                Checkbox(
-                  value: context.watch<PatientBloc>().state.patients[index].isWaiting,
-                  onChanged: (value) {
-                    context.read<PatientBloc>().add(
-                      PatientUpdate(patient: context.read<PatientBloc>().state.patients[index].copyWith(isWaiting: value)),
-                    );
-                  },
-                ),
+                //
+                // Checkbox(
+                //   value: context.watch<PatientBloc>().state.patients[index].isWaiting,
+                //   onChanged: (value) {
+                //     context.read<PatientBloc>().add(
+                //       PatientUpdate(patient: context.read<PatientBloc>().state.patients[index].copyWith(isWaiting: value)),
+                //     );
+                //   },
+                // ),
               ],
             ),
 

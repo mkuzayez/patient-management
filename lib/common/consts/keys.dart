@@ -9,4 +9,5 @@ class CacheKeys {
   const CacheKeys._();
 
   static const patients = 'patients';
+  static const patientID = 'patients_id';
 }

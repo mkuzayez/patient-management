@@ -49,8 +49,7 @@ class _PatientsScreenState extends State<PatientsScreen> {
 
             case (Status.failure):
               LoadingDialog.close();
-              _showErrorSnackBar("خطأ بتحميل المرضى، يرجى المحاولة مجددًا");
-              log(state.failure!.message);
+              _showErrorSnackBar("خطأ بالاتصال، يرجى المحاولة مجددًا");
 
             case (Status.success):
               LoadingDialog.close();
@@ -87,7 +86,7 @@ class _PatientsScreenState extends State<PatientsScreen> {
                   width: double.maxFinite,
                   child: ElevatedButton(
                     onPressed: () {
-                      context.push('/add-patient');
+                      GoRouterHelper(context).push('/patients/add-patient/');
                     },
                     child: const Text("إضافة مريض"),
                   ),
@@ -97,7 +96,7 @@ class _PatientsScreenState extends State<PatientsScreen> {
               Expanded(
                 child: RefreshIndicator(
                   onRefresh: () async {
-                    context.read<PatientBloc>().add(const PatientFetchAll());
+                    context.read<PatientBloc>().add(const PatientFetchAll(shouldRefresh: true));
                   },
                   child: Builder(
                     builder: (context) {

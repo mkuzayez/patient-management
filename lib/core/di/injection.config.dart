@@ -19,13 +19,24 @@ import '../../features/patients/data/repositories/patients_repository_impl.dart'
     as _i347;
 import '../../features/patients/domain/repositories/patients_repository.dart'
     as _i420;
+import '../../features/patients/domain/use_cases/add_given_med.dart' as _i322;
+import '../../features/patients/domain/use_cases/add_med.dart' as _i501;
 import '../../features/patients/domain/use_cases/create_patient.dart' as _i1004;
+import '../../features/patients/domain/use_cases/delete_given_med.dart'
+    as _i625;
 import '../../features/patients/domain/use_cases/delete_patient.dart' as _i870;
+import '../../features/patients/domain/use_cases/get_all_meds.dart' as _i506;
 import '../../features/patients/domain/use_cases/get_all_patients.dart'
     as _i857;
+import '../../features/patients/domain/use_cases/get_given_meds.dart' as _i941;
+import '../../features/patients/domain/use_cases/get_invoice.dart' as _i24;
 import '../../features/patients/domain/use_cases/get_patient.dart' as _i517;
 import '../../features/patients/domain/use_cases/search_patients.dart' as _i105;
 import '../../features/patients/domain/use_cases/update_patient.dart' as _i1043;
+import '../../features/patients/presentation/manager/invoice_cubit/invoice_cubit.dart'
+    as _i773;
+import '../../features/patients/presentation/manager/meds_bloc/meds_bloc.dart'
+    as _i122;
 import '../../features/patients/presentation/manager/patients_bloc.dart'
     as _i171;
 import '../network/http_client.dart' as _i1069;
@@ -45,14 +56,26 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i420.PatientRepository>(
       () => _i347.PatientRepositoryImpl(gh<_i292.PatientDataSource>()),
     );
+    gh.lazySingleton<_i322.AddGivenMedUseCase>(
+      () => _i322.AddGivenMedUseCase(gh<_i420.PatientRepository>()),
+    );
     gh.lazySingleton<_i1004.CreatePatient>(
       () => _i1004.CreatePatient(gh<_i420.PatientRepository>()),
+    );
+    gh.lazySingleton<_i625.DeleteGivenMedUsecase>(
+      () => _i625.DeleteGivenMedUsecase(gh<_i420.PatientRepository>()),
     );
     gh.lazySingleton<_i870.DeletePatient>(
       () => _i870.DeletePatient(gh<_i420.PatientRepository>()),
     );
+    gh.lazySingleton<_i506.GetAllMedsUseCase>(
+      () => _i506.GetAllMedsUseCase(gh<_i420.PatientRepository>()),
+    );
     gh.lazySingleton<_i857.GetAllPatients>(
       () => _i857.GetAllPatients(gh<_i420.PatientRepository>()),
+    );
+    gh.lazySingleton<_i941.GetGivenMedsUseCase>(
+      () => _i941.GetGivenMedsUseCase(gh<_i420.PatientRepository>()),
     );
     gh.lazySingleton<_i517.GetPatient>(
       () => _i517.GetPatient(gh<_i420.PatientRepository>()),
@@ -63,14 +86,33 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i1043.UpdatePatient>(
       () => _i1043.UpdatePatient(gh<_i420.PatientRepository>()),
     );
+    gh.lazySingleton<_i501.AddMedUseCase>(
+      () => _i501.AddMedUseCase(gh<_i420.PatientRepository>()),
+    );
+    gh.lazySingleton<_i24.GetInvoiceUseCase>(
+      () => _i24.GetInvoiceUseCase(gh<_i420.PatientRepository>()),
+    );
+    gh.factory<_i773.ReportCubit>(
+      () => _i773.ReportCubit(getInvoiceUseCase: gh<_i24.GetInvoiceUseCase>()),
+    );
     gh.factory<_i171.PatientBloc>(
       () => _i171.PatientBloc(
         gh<_i857.GetAllPatients>(),
         gh<_i517.GetPatient>(),
+        gh<_i941.GetGivenMedsUseCase>(),
         gh<_i1004.CreatePatient>(),
         gh<_i1043.UpdatePatient>(),
         gh<_i870.DeletePatient>(),
         gh<_i899.CacheManager>(),
+        gh<_i322.AddGivenMedUseCase>(),
+        gh<_i625.DeleteGivenMedUsecase>(),
+        gh<_i506.GetAllMedsUseCase>(),
+      ),
+    );
+    gh.factory<_i122.MedsBloc>(
+      () => _i122.MedsBloc(
+        getAllMedsUseCase: gh<_i506.GetAllMedsUseCase>(),
+        addMedUseCase: gh<_i501.AddMedUseCase>(),
       ),
     );
     return this;

@@ -1,9 +1,17 @@
 import 'dart:developer';
 
+import 'package:dartz/dartz.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:injectable/injectable.dart';
 import 'package:patient_managment/common/consts/keys.dart';
+import 'package:patient_managment/features/patients/data/models/given_medicine.dart';
+import 'package:patient_managment/features/patients/data/models/medicine.dart';
+import 'package:patient_managment/features/patients/domain/use_cases/add_given_med.dart';
+import 'package:patient_managment/features/patients/domain/use_cases/delete_given_med.dart';
+import 'package:patient_managment/features/patients/domain/use_cases/get_all_meds.dart';
 
 import '../../../../common/utils/base_state.dart';
 import '../../../../common/utils/cache_manager.dart';
@@ -12,6 +20,7 @@ import '../../data/models/patients.dart';
 import '../../domain/use_cases/create_patient.dart';
 import '../../domain/use_cases/delete_patient.dart';
 import '../../domain/use_cases/get_all_patients.dart';
+import '../../domain/use_cases/get_given_meds.dart';
 import '../../domain/use_cases/get_patient.dart';
 import '../../domain/use_cases/update_patient.dart';
 
@@ -22,20 +31,33 @@ part 'patients_state.dart';
 class PatientBloc extends Bloc<PatientEvent, PatientState> {
   final GetAllPatients _getAllPatients;
   final GetPatient _getPatient;
+
   // final SearchPatients _searchPatients;
   final CreatePatient _createPatient;
   final UpdatePatient _updatePatient;
   final DeletePatient _deletePatient;
+
+  final GetGivenMedsUseCase _getGivenMeds;
   final CacheManager _cacheManager;
+
+  final AddGivenMedUseCase addGivenMedUseCase;
+
+  final DeleteGivenMedUsecase deleteGivenMed;
+
+  final GetAllMedsUseCase getAllMeds;
 
   PatientBloc(
     this._getAllPatients,
     this._getPatient,
+    this._getGivenMeds,
     // this._searchPatients,
     this._createPatient,
     this._updatePatient,
     this._deletePatient,
     this._cacheManager,
+    this.addGivenMedUseCase,
+    this.deleteGivenMed,
+    this.getAllMeds,
   ) : super(const PatientState(uiStatus: Status.initial)) {
     on<PatientFetchAll>(_onFetchAll);
     on<PatientFetchOne>(_onFetchOne);
@@ -43,6 +65,10 @@ class PatientBloc extends Bloc<PatientEvent, PatientState> {
     on<PatientCreate>(_onCreate);
     on<PatientUpdate>(_onUpdate);
     on<PatientDelete>(_onDelete);
+    on<GivenMedsFetchAll>(_onGetGivenMedsEvent);
+    on<MedsFetchAll>(_onGetAllMeds);
+    on<AddGivenMed>(_addGivenMed);
+    on<DeleteGivenMedEvent>(_deleteGivenMed);
   }
 
   Future<void> _onFetchAll(PatientFetchAll event, Emitter<PatientState> emit) async {
@@ -72,19 +98,38 @@ class PatientBloc extends Bloc<PatientEvent, PatientState> {
       } on Object catch (e) {
         emit(state.copyWith(uiStatus: Status.failure, errorMessage: 'Failed to fetch patients: ${e.toString()}'));
       }
+    } else {
+      final cachedPatients = _cacheManager.getData<List<Patient>>(key: CacheKeys.patients);
+
+      emit(state.copyWith(uiStatus: Status.success, patients: cachedPatients, errorMessage: null));
     }
   }
 
   Future<void> _onFetchOne(PatientFetchOne event, Emitter<PatientState> emit) async {
     // Uses actionStatus only - shows dialog over existing UI
-    emit(state.copyWith(actionStatus: Status.loading, errorMessage: null));
+    emit(state.copyWith(uiStatus: Status.loading, errorMessage: null, givenMeds: null));
 
-    final result = await _getPatient(event.patientId);
+    // final Patient? patient = _cacheManager.getData(key: "${CacheKeys.patientID}_${event.patientId}");
+    //
+    // if (_cacheManager.getData(key: "${CacheKeys.patientID}_${event.patientId}") != null) {
+    //   emit(state.copyWith(uiStatus: Status.success, selectedPatient: patient, errorMessage: null));
+    //   return;
+    // }
 
-    result.fold(
-      (failure) => emit(state.copyWith(actionStatus: Status.failure, errorMessage: failure.message)),
-      (patient) => emit(state.copyWith(actionStatus: Status.success, selectedPatient: patient, errorMessage: null)),
-    );
+    final results = await Future.wait([_getPatient(event.patientId), _getGivenMeds(event.patientId)]);
+
+    final patientResult = results[0] as Either<Failure, Patient>;
+    final medsResult = results[1] as Either<Failure, List<GivenMedicine>>;
+
+    patientResult.fold((failure) => emit(state.copyWith(uiStatus: Status.failure, errorMessage: failure.message)), (patient) {
+      // _cacheManager.cacheData(key: "${CacheKeys.patientID}_${patient.id}", data: patient);
+      emit(state.copyWith(uiStatus: Status.success, selectedPatient: patient, errorMessage: null));
+    });
+
+    medsResult.fold((_) {}, (meds) {
+      emit(state.copyWith(givenMeds: meds));
+      print("meds $meds");
+    });
   }
 
   Future<void> _onCreate(PatientCreate event, Emitter<PatientState> emit) async {
@@ -96,6 +141,9 @@ class PatientBloc extends Bloc<PatientEvent, PatientState> {
     result.fold((failure) => emit(state.copyWith(actionStatus: Status.failure, errorMessage: failure.message)), (newPatient) {
       final updatedPatients = List<Patient>.from(state.patients)..add(newPatient);
       emit(state.copyWith(actionStatus: Status.success, patients: updatedPatients, selectedPatient: newPatient, errorMessage: null));
+      ScaffoldMessenger.of(event.context).showSnackBar(const SnackBar(content: Text('تم إضافة بيانات المريض بنجاح')));
+      event.context.pop();
+      return;
     });
   }
 
@@ -124,14 +172,29 @@ class PatientBloc extends Bloc<PatientEvent, PatientState> {
 
     try {
       final result = await _updatePatient(event.patient);
+      result.fold((failure) {
+        print("LEFT, LEFT");
+        debugPrint("failure ${failure.message}");
+        emit(state.copyWith(actionStatus: Status.failure, errorMessage: failure.message));
 
-      result.fold((failure) => emit(state.copyWith(actionStatus: Status.failure, errorMessage: failure.message)), (savedPatient) {
-        final updatedPatients = state.patients.map((p) => p.id == savedPatient.id ? savedPatient : p).toList();
+        }, (savedPatient) {
+        final old = state.patients.where((element) => element.id == savedPatient.id).first;
 
-        emit(state.copyWith(actionStatus: Status.success, patients: updatedPatients, selectedPatient: savedPatient, errorMessage: null));
+        state.patients.remove(old);
+
+        final updated = state.patients..add(savedPatient);
+
+        _cacheManager.cacheData(key: "${CacheKeys.patientID}_${savedPatient.id}", data: savedPatient);
+        _cacheManager.cacheData(key: CacheKeys.patients, data: updated);
+
+        emit(state.copyWith(actionStatus: Status.success, patients: List.of(updated), selectedPatient: savedPatient, errorMessage: null, clearFailure: true));
+        ScaffoldMessenger.of(event.context).showSnackBar(const SnackBar(content: Text('تم تحديث بيانات المريض بنجاح')));
       });
     } catch (e) {
-      emit(state.copyWith(actionStatus: Status.failure, errorMessage: 'Failed to update patient: ${e.toString()}'));
+      print("e.toString() ${e.toString()}");
+      emit(state.copyWith(actionStatus: Status.failure, errorMessage: 'خطأ بالاتصال، يرجى المحاولة مجددًا'));
+
+      emit(state.copyWith(actionStatus: Status.initial, uiStatus: Status.initial, errorMessage: null));
     }
   }
 
@@ -153,15 +216,67 @@ class PatientBloc extends Bloc<PatientEvent, PatientState> {
       );
     });
   }
-  // bool _validatePatient(Patient patient) {
-  //   return patient.fullName.isNotEmpty &&
-  //       patient.age >= 0 &&
-  //       patient.gender!.isNotEmpty &&
-  //       (patient.mobileNumber?.isEmpty ?? true || _isValidMobileNumber(patient.mobileNumber!));
-  // }
 
-  // bool _isValidMobileNumber(String mobileNumber) {
-  //   final regex = RegExp(r'^\+?[1-9]\d{1,14}$');
-  //   return regex.hasMatch(mobileNumber);
-  // }
+  Future<void> _onGetGivenMedsEvent(GivenMedsFetchAll event, Emitter<PatientState> emit) async {
+    //   emit(state.copyWith(uiStatus: Status.loading, givenMeds: null, errorMessage: null));
+    //
+    //   final result = await _getGivenMeds(event.id);
+    //
+    //   result.fold(
+    //     (failure) {
+    //       print(failure.message);
+    //       emit(state.copyWith(uiStatus: Status.failure, errorMessage: failure.message));
+    //     },
+    //     (givenMeds) {
+    //       emit(state.copyWith(uiStatus: Status.success, givenMeds: givenMeds, errorMessage: null));
+    //     },
+    //   );
+  }
+
+  Future<void> _onGetAllMeds(MedsFetchAll event, Emitter<PatientState> emit) async {
+    emit(state.copyWith(dialogStatus: Status.loading, errorMessage: null, clearFailure: true, allMeds: []));
+
+    final result = await getAllMeds();
+
+    result.fold((l) {}, (r) {
+      emit(state.copyWith(allMeds: r, dialogStatus: Status.success));
+    });
+  }
+
+  Future<void> _addGivenMed(AddGivenMed event, Emitter<PatientState> emit) async {
+    emit(state.copyWith(dialogStatus: Status.loading, errorMessage: null, clearFailure: true));
+
+    final result = await addGivenMedUseCase(event.patientId, event.medId, event.quantity, event.dosage);
+
+    result.fold(
+      (f) {
+        emit(state.copyWith(actionStatus: Status.failure, failure: f));
+      },
+      (g) {
+        final updated = List<GivenMedicine>.from(state.givenMeds);
+        updated.add(g);
+
+        emit(state.copyWith(actionStatus: Status.success, givenMeds: updated));
+        event.context.pop();
+      },
+    );
+  }
+
+  Future<void> _deleteGivenMed(DeleteGivenMedEvent event, Emitter<PatientState> emit) async {
+    emit(state.copyWith(actionStatus: Status.loading, errorMessage: null, clearFailure: true));
+
+    final result = await deleteGivenMed(event.id);
+
+    result.fold(
+      (l) {
+        emit(state.copyWith(actionStatus: Status.failure, errorMessage: null, clearFailure: true));
+      },
+      (r) {
+        final updated = List<GivenMedicine>.from(state.givenMeds);
+        updated.remove(state.givenMeds.where((element) => element?.id == event.id));
+
+        emit(state.copyWith(actionStatus: Status.success, errorMessage: null, clearFailure: true, givenMeds: updated));
+      },
+    );
+  }
 }
