@@ -101,7 +101,7 @@ class PatientDataSource with ApiHandler {
             data: {"name": name, "dose": dose, "scientific_name": scientificName, "company": company, "price": price},
           ),
       jsonConvert: (data) {
-        return Medicine.fromJson(data);
+        return Medicine.fromJson(data['data']);
       },
     );
   }

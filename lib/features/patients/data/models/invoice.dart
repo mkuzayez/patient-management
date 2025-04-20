@@ -30,7 +30,7 @@ class Invoice {
 class Metadata {
   final String? fromDate;
   final String? toDate;
-  final double? totalPrice;
+  final dynamic totalPrice;
   final FiltersApplied filtersApplied;
 
   Metadata({

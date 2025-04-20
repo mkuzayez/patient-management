@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 
 import '../manager/patients_bloc.dart';
 
@@ -24,6 +25,17 @@ class PatientCard extends StatelessWidget {
 }
 
 Widget _card({required BuildContext context, required int index}) {
+
+// Add this helper function
+  String formatLastVisit(String dateString) {
+    try {
+      final date = DateTime.parse(dateString);
+      return DateFormat('MM-dd').format(date);
+    } catch (e) {
+      return dateString;
+    }
+  }
+
   return GestureDetector(
     onTap: () => GoRouterHelper(context).push('/patients/details/${context.read<PatientBloc>().state.patients[index].id}'),
     child: Card(
@@ -75,7 +87,12 @@ Widget _card({required BuildContext context, required int index}) {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 _infoBox(title: 'السجلات الطبية', value: '${context.read<PatientBloc>().state.patients[index].recordsCount}'),
-                _infoBox(title: 'الزيارة الأخيرة', value: context.read<PatientBloc>().state.patients[index].lastVisit ?? '-'),
+                _infoBox(
+                  title: 'الزيارة الأخيرة',
+                  value: context.read<PatientBloc>().state.patients[index].lastVisit != null
+                      ? formatLastVisit(context.read<PatientBloc>().state.patients[index].lastVisit!)
+                      : '-',
+                ),
                 _infoBox(
                   title: 'الحالة',
                   value: (context.read<PatientBloc>().state.patients[index].status ?? '').toUpperCase(),

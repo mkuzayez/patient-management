@@ -12,15 +12,13 @@ import '../../../domain/use_cases/add_med.dart';
 
 part 'meds_event.dart';
 part 'meds_state.dart';
+
 @injectable
 class MedsBloc extends Bloc<MedsEvent, MedsState> {
   final GetAllMedsUseCase getAllMedsUseCase;
   final AddMedUseCase addMedUseCase;
 
-  MedsBloc({
-    required this.getAllMedsUseCase,
-    required this.addMedUseCase,
-  }) : super(const MedsState()) {
+  MedsBloc({required this.getAllMedsUseCase, required this.addMedUseCase}) : super(const MedsState()) {
     on<LoadAllMedsEvent>(_onLoadAllMeds);
     on<AddMedEvent>(_onAddMed);
   }
@@ -30,15 +28,8 @@ class MedsBloc extends Bloc<MedsEvent, MedsState> {
 
     final result = await getAllMedsUseCase();
     result.fold(
-          (failure) => emit(state.copyWith(
-        uiStatus: Status.failure,
-        failure: failure,
-        errorMessage: "خطأ بتحميل الأدوية"
-      )),
-          (meds) => emit(state.copyWith(
-        uiStatus: Status.success,
-        allMeds: meds,
-      )),
+      (failure) => emit(state.copyWith(uiStatus: Status.failure, failure: failure, errorMessage: "خطأ بتحميل الأدوية")),
+      (meds) => emit(state.copyWith(uiStatus: Status.success, allMeds: meds)),
     );
   }
 
@@ -54,17 +45,11 @@ class MedsBloc extends Bloc<MedsEvent, MedsState> {
     );
 
     result.fold(
-          (failure) => emit(state.copyWith(
-        dialogStatus: Status.failure,
-        failure: failure,
-        errorMessage: "خطأ بإضافة الدواء، يرجى المحاولة مجددًا",
-      )),
-          (newMed) {
-        final updatedMeds = [...state.allMeds, newMed];
-        emit(state.copyWith(
-          allMeds: updatedMeds,
-          dialogStatus: Status.success,
-        ));
+      (failure) => emit(state.copyWith(dialogStatus: Status.failure, failure: failure, errorMessage: "خطأ بإضافة الدواء، يرجى المحاولة مجددًا")),
+      (newMed) {
+        print("newMed ${newMed.name}");
+        final updatedMeds = List.of(state.allMeds)..add(newMed);
+        emit(state.copyWith(allMeds: updatedMeds, dialogStatus: Status.success));
       },
     );
   }

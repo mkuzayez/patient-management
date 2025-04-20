@@ -13,14 +13,14 @@ class MedicinesScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text("الأدوية")),
       body: BlocConsumer<MedsBloc, MedsState>(
-        listener: (context, state) {switch (state.dialogStatus) {
-          case Status.success:
-            context.pop();
-          case Status.failure:
-            context.pop();
-          default:
-        }
-
+        listener: (context, state) {
+          switch (state.dialogStatus) {
+            case Status.success:
+              context.pop();
+            case Status.failure:
+              context.pop();
+            default:
+          }
         },
         builder: (context, state) {
           if (state.uiStatus == Status.loading) {
@@ -49,14 +49,13 @@ class MedicinesScreen extends StatelessWidget {
                   subtitle: Text.rich(
                     TextSpan(
                       children: [
-                        if (med.scientificName != null && med.scientificName!.isNotEmpty)
-                          TextSpan(text: "الاسم العلمي: ${med.scientificName}\n"),
+                        if (med.scientificName != null && med.scientificName!.isNotEmpty) TextSpan(text: "الاسم العلمي: ${med.scientificName}\n"),
                         TextSpan(text: "العيار: ${med.dose}"),
                       ],
                     ),
                   ),
                   trailing: Text("السعر: ${med.price}"),
-                )
+                ),
               );
             },
           );
@@ -76,9 +75,7 @@ class MedicinesScreen extends StatelessWidget {
               return BlocProvider.value(
                 value: context.read<MedsBloc>(),
                 child: BlocConsumer<MedsBloc, MedsState>(
-                  listener: (context, state) {
-
-                  },
+                  listener: (context, state) {},
                   builder: (context, state) {
                     final isLoading = state.dialogStatus == Status.loading;
 
@@ -89,7 +86,7 @@ class MedicinesScreen extends StatelessWidget {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             TextField(controller: nameController, decoration: const InputDecoration(labelText: 'اسم الدواء')),
-                            TextField(controller: doseController, decoration: const InputDecoration(labelText: 'الجرعة')),
+                            TextField(controller: doseController, decoration: const InputDecoration(labelText: 'العيار')),
                             TextField(controller: scientificController, decoration: const InputDecoration(labelText: 'الاسم العلمي')),
                             TextField(controller: companyController, decoration: const InputDecoration(labelText: 'الشركة المصنعة')),
                             TextField(
