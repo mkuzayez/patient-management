@@ -184,12 +184,12 @@ class PatientBloc extends Bloc<PatientEvent, PatientState> {
         },
         (savedPatient) {
           print("${savedPatient.id} savedPatient.id");
-          print("${state.selectedPatient?.id} selectedPatient.id");
+          // print("${state.selectedPatient?.id} selectedPatient.id");
 
-          state.patients.remove(state.selectedPatient);
+          state.patients.remove(state.patients.firstWhere((element) => element.id == event.patient.id));
 
           final updated = state.patients;
-          updated.add(event.patient);
+          updated.add(savedPatient);
           _cacheManager.cacheData(key: "${CacheKeys.patientID}_${savedPatient.id}", data: savedPatient);
           _cacheManager.cacheData(key: CacheKeys.patients, data: List.of(updated));
 
@@ -200,6 +200,7 @@ class PatientBloc extends Bloc<PatientEvent, PatientState> {
               selectedPatient: savedPatient,
               errorMessage: null,
               clearFailure: true,
+              shouldPop: true,
             ),
           );
           ScaffoldMessenger.of(event.context).showSnackBar(const SnackBar(content: Text('تم تحديث بيانات المريض بنجاح')));
@@ -215,24 +216,30 @@ class PatientBloc extends Bloc<PatientEvent, PatientState> {
     }
   }
 
-  Future<void> _onDelete(PatientDelete event, Emitter<PatientState> emit) async {
-    // Uses actionStatus only - shows confirmation dialog
-    emit(state.copyWith(actionStatus: Status.loading, errorMessage: null));
+Future<void> _onDelete(PatientDelete event, Emitter<PatientState> emit) async {
+  emit(state.copyWith(actionStatus: Status.loading, errorMessage: null));
 
-    final result = await _deletePatient(event.patientId);
+  final result = await _deletePatient(event.patientId);
 
-    result.fold((failure) => emit(state.copyWith(actionStatus: Status.failure, errorMessage: failure.message)), (_) {
+  result.fold((failure) {
+      emit(state.copyWith(actionStatus: Status.failure, errorMessage: failure.message));
+    }, 
+    (_) {
       final updatedList = state.patients.where((p) => p.id != event.patientId).toList();
+      _cacheManager.cacheData(key: CacheKeys.patients, data: List.of(updatedList));
       emit(
         state.copyWith(
           actionStatus: Status.success,
-          patients: updatedList,
-          selectedPatient: state.selectedPatient?.id == event.patientId ? null : state.selectedPatient,
+          patients: List.of(updatedList),
+          selectedPatient: null,
           errorMessage: null,
+          shouldPop: true
         ),
       );
-    });
-  }
+    },
+  );
+}
+
 
   Future<void> _onGetGivenMedsEvent(GivenMedsFetchAll event, Emitter<PatientState> emit) async {
     //   emit(state.copyWith(uiStatus: Status.loading, givenMeds: null, errorMessage: null));
@@ -251,7 +258,7 @@ class PatientBloc extends Bloc<PatientEvent, PatientState> {
   }
 
   Future<void> _onGetAllMeds(MedsFetchAll event, Emitter<PatientState> emit) async {
-    emit(state.copyWith(dialogStatus: Status.loading, errorMessage: null, clearFailure: true, allMeds: []));
+    emit(state.copyWith(dialogStatus: Status.loading, errorMessage: null, clearFailure: true, allMeds: state.allMeds));
 
     final result = await getAllMeds();
 
@@ -307,5 +314,7 @@ class PatientBloc extends Bloc<PatientEvent, PatientState> {
       },
     );
   }
+
+
 
 }

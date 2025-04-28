@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:patient_managment/features/patients/data/models/patients.dart';
 
 import '../../../../common/consts/app_consts.dart';
@@ -10,8 +11,9 @@ class AddEditPatientScreen extends StatefulWidget {
   final Patient? patient;
   final int? patientId;
   final bool shouldInit;
+  final bool isEditing;
 
-  const AddEditPatientScreen({super.key, this.patient, this.patientId, this.shouldInit = true});
+  const AddEditPatientScreen({super.key, this.patient, this.patientId, this.shouldInit = true, required this.isEditing});
 
   @override
   State<AddEditPatientScreen> createState() => _AddEditPatientScreenState();
@@ -33,6 +35,8 @@ class _AddEditPatientScreenState extends State<AddEditPatientScreen> {
   @override
   void initState() {
     super.initState();
+
+    print("widget.patient ${widget.patient == null}");
     if (widget.patient != null) {
       _initializeFormWithPatient(widget.patient!);
       _isInitialized = true;
@@ -42,7 +46,7 @@ class _AddEditPatientScreenState extends State<AddEditPatientScreen> {
   void _initializeFormWithPatient(Patient patient) {
     _fullNameController.text = patient.fullName;
     _ageController.text = patient.age.toString();
-    _gender = patient.gender ?? "";
+    _gender = patient.gender;
     _areaController.text = patient.area ?? "";
     _mobileNumberController.text = patient.mobileNumber ?? "";
     // _pastIllnessesController.text = patient.pastIllnesses ?? "";
@@ -71,28 +75,32 @@ class _AddEditPatientScreenState extends State<AddEditPatientScreen> {
           _showErrorSnackBar(state.failure?.message ?? 'خطأ بالاتصال، يرجى المحاولة مجددًا');
         }
 
-        if (state.uiStatus == Status.success) {
-          // If we're fetching a patient
-          if (state.selectedPatient != null && !_isInitialized && widget.patient == null && widget.shouldInit == true) {
-            _initializeFormWithPatient(state.selectedPatient!);
-            _isInitialized = true;
-          }
+        // if (state.uiStatus == Status.success) {
+        //   // If we're fetching a patient
+        //   if (widget.patient != null) {
+        //     _initializeFormWithPatient(state.selectedPatient!);
+        //     _isInitialized = true;
+        //   }
 
-          // // If we've successfully created or updated a patient
-          // if (state.uiStatus == Status.success && (state.selectedPatient?.id != null) && (widget.patient != null || _isInitialized)) {
-          //   // Navigator.pop(context);
-          // }
+        //   // // If we've successfully created or updated a patient
+        //   // if (state.uiStatus == Status.success && (state.selectedPatient?.id != null) && (widget.patient != null || _isInitialized)) {
+        //   //   // Navigator.pop(context);
+        //   // }
+        // }
+
+                if (state.actionStatus == Status.success && state.shouldPop == true) {
+          context.pop();
         }
       },
       builder: (context, state) {
-        // final isLoading = state.uiStatus == Status.loading;
-        final isEditing = widget.patient != null || (state.selectedPatient != null && widget.patientId != null);
+        final isLoading = state.uiStatus == Status.loading;
+        final isEditing = widget.isEditing;
 
         return Scaffold(
           appBar: AppBar(title: Text(isEditing ? 'تعديل بيانات المريض' : 'إضافة مريض')),
           body:
-              // isLoading && !_isInitialized
-              //     ? const Center(child: CircularProgressIndicator())
+              isLoading && !_isInitialized
+                  ? const Center(child: CircularProgressIndicator()) :
                    SingleChildScrollView(
                     padding: const EdgeInsets.all(16.0),
                     child: Form(
@@ -130,7 +138,9 @@ class _AddEditPatientScreenState extends State<AddEditPatientScreen> {
                           ),
                           const SizedBox(height: 16),
                           DropdownButtonFormField<String>(
-                            value: AppConstants.genderOptions[0],
+                            value: _gender == 'male'
+                                ? AppConstants.genderOptions[0]
+                                : AppConstants.genderOptions[1],
                             decoration: const InputDecoration(labelText: 'الجنس', prefixIcon: Icon(Icons.check_circle)),
                             items:
                                 AppConstants.genderOptions.map((String status) {
@@ -175,8 +185,11 @@ class _AddEditPatientScreenState extends State<AddEditPatientScreen> {
                           // ),
                           const SizedBox(height: 16),
                           DropdownButtonFormField<String>(
-                            value: AppConstants.patientStatusOptions[0],
-                            decoration: const InputDecoration(labelText: 'الحالة', prefixIcon: Icon(Icons.check_circle)),
+                            value: _status == 'active'
+                                ? AppConstants.patientStatusOptions[0]
+                                : _status == 'inactive'
+                                ? AppConstants.patientStatusOptions[1]
+                                : AppConstants.patientStatusOptions[2],                            decoration: const InputDecoration(labelText: 'الحالة', prefixIcon: Icon(Icons.check_circle)),
                             items:
                                 AppConstants.patientStatusOptions.map((String status) {
                                   return DropdownMenuItem<String>(value: status, child: Text(status));
@@ -195,9 +208,9 @@ class _AddEditPatientScreenState extends State<AddEditPatientScreen> {
                                 // isLoading
                                 //     ? null
                                 //     : () {
-                                //       if (!_formKey.currentState!.validate()) {
-                                //         return;
-                                //       }
+                                      if (!_formKey.currentState!.validate()) {
+                                        return;
+                                      }
 
                                       if (isEditing) {
                                         final patientId = widget.patient?.id ?? state.selectedPatient?.id ?? widget.patientId!;
@@ -212,7 +225,7 @@ class _AddEditPatientScreenState extends State<AddEditPatientScreen> {
                                               isWaiting: false,
                                               area: _areaController.text,
                                               // pastIllnesses: _pastIllnessesController.text,
-                                              status: _status == 'فعال' ? 'active' : 'inactive',
+                                              status: _status == 'فعال' ? 'active' : _status == 'غير فعال' ? 'inactive' : 'pending',
                                               mobileNumber: _mobileNumberController.text,
                                             ),
                                           ),
@@ -227,7 +240,7 @@ class _AddEditPatientScreenState extends State<AddEditPatientScreen> {
                                               isWaiting: false,
                                               area: _areaController.text,
                                               // pastIllnesses: _pastIllnessesController.text,
-                                              status: _status == 'فعال' ? 'active' : 'inactive',
+                                              status: _status == 'فعال' ? 'active' : _status == 'غير فعال' ? 'inactive' : 'pending',
                                               mobileNumber: _mobileNumberController.text,
                                             ),
                                             context,

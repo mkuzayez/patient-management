@@ -18,7 +18,7 @@ class AppConstants {
   static const String appName = 'إدارة المرضى';
 
   // Status options
-  static const List<String> patientStatusOptions = ['فعال', 'غير فعال'];
+  static const List<String> patientStatusOptions = ['فعال', 'غير فعال', 'قيد الانتظار'];
 
   // Gender options
   static const List<String> genderOptions = ['ذكر', 'أنثى'];

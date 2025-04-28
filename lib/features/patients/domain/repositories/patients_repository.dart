@@ -36,6 +36,15 @@ abstract class PatientRepository {
     required String price,
   });
 
+  Future<Either<Failure, Medicine>> updateMed({
+    required String id,
+    required String name,
+    required String dose,
+    required String scientificName,
+    required String company,
+    required String price,
+  });
+
 
   Future<Either<Failure, Invoice>> getInvoice();
 }

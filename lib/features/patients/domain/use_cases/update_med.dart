@@ -6,18 +6,19 @@ import '../../../../core/network/exceptions.dart';
 import '../../domain/repositories/patients_repository.dart';
 
 @lazySingleton
-class AddMedUseCase {
+class UpdateMed {
   final PatientRepository repository;
 
-  AddMedUseCase(this.repository);
+  UpdateMed(this.repository);
 
   Future<Either<Failure, Medicine>> call({
+    required String id,
     required String name,
     required String dose,
     required String scientificName,
     required String company,
     required String price,
   }) {
-    return repository.addMed(name: name, dose: dose, scientificName: scientificName, company: company, price: price);
+    return repository.updateMed(id: id, name: name, dose: dose, scientificName: scientificName, company: company, price: price);
   }
 }

@@ -27,29 +27,64 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
   Widget build(BuildContext context) {
     return BlocConsumer<PatientBloc, PatientState>(
       listener: (context, state) {
+        print("state.uiStatus ${state.uiStatus}");
+        print("state.shouldPop ${state.uiStatus}");
+
         if (state.actionStatus == Status.failure) {
           if (state.failure != null) _showErrorSnackBar(state.failure!.message);
         }
 
-        if (state.actionStatus == Status.success) {
-          if (state.failure != null) _showErrorSnackBar(state.failure!.message);
+        if (state.actionStatus == Status.success && state.shouldPop == true) {
+          context.pop();
         }
       },
       builder: (context, state) {
         final isLoading = state.uiStatus == Status.loading;
-        final patient = state.selectedPatient;
+        final Patient patient = state.patients.firstWhere((element) => element.id == widget.patientId);
 
         return Scaffold(
           appBar: AppBar(
             title: Text(isLoading ? 'بيانات المريض' : patient?.fullName ?? 'بيانات المريض'),
             actions: [
-              if (!isLoading && patient != null)
-                IconButton(
+              if (!isLoading && patient != null && patient.id != null)
+                ...[IconButton(
                   icon: const Icon(Icons.edit),
                   onPressed: () {
                     context.push('/patients/edit-patient/${patient.id!}');
                   },
                 ),
+                  IconButton(
+                  onPressed: () async {
+                    final shouldDelete = await showDialog<bool>(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: const Text('هل أنت متأكد؟'),
+                        content: const Text('هل تريد حذف هذا المريض؟ لا يمكن التراجع عن هذا الإجراء.'),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context, false),
+                            child: const Text('إلغاء'),
+                          ),
+                          TextButton(
+                            onPressed: () => Navigator.pop(context, true),
+                            child: const Text('حذف'),
+                          ),
+                        ],
+                      ),
+                    );
+
+                    if (shouldDelete == true) {
+                      if (context.mounted) {
+                      final patientId = widget.patientId;
+                      if (patientId != null) {
+                        context.read<PatientBloc>().add(PatientDelete(patientId));
+                      }
+                    }
+                    }
+                  },
+                  icon: const Icon(Icons.delete),
+                )
+                ]
             ],
           ),
           body:
@@ -153,8 +188,12 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
 
   Widget _buildGivenMeds({required PatientBloc patientBloc, required int patientID}) {
     return BlocBuilder<PatientBloc, PatientState>(
-      buildWhen: (previous, current) => previous.givenMeds != current.givenMeds,
       builder: (context, state) {
+
+        if (state.uiStatus == Status.loading) {
+          return const CircularProgressIndicator();
+        }
+
         return context.read<PatientBloc>().state.givenMeds.isEmpty
             ? Column(
               children: [
@@ -264,6 +303,8 @@ class AddMedDialog extends StatefulWidget {
 }
 
 class _AddMedDialogState extends State<AddMedDialog> {
+
+  bool isLoading = true;
   late Medicine _selectedMed;
    TextEditingController _medController = TextEditingController();
    final TextEditingController _quantityController = TextEditingController();
@@ -287,15 +328,32 @@ class _AddMedDialogState extends State<AddMedDialog> {
                   context.pop();
                   _showErrorSnackBar("خطأ بتحميل الأدوية، حاول مجددًا");
                 }
-              },
-              builder: (context, state) {
-                if (state.dialogStatus == Status.loading) {
-                  return const Center(child: CircularProgressIndicator());
+
+                if (state.dialogStatus == Status.success || state.dialogStatus == Status.failure){
+                  isLoading = false;
                 }
 
-                if (state.allMeds.isEmpty && state.dialogStatus != Status.loading) {
-                  return const Text("لا يوجد أدوية متاحة.");
-                }
+
+              },
+                builder: (context, state) {
+
+                  // Handle loading state first
+                  if (isLoading) {
+                    return const Padding(
+                      padding: EdgeInsets.all(8.0),
+                      child: Center(child: CircularProgressIndicator()),
+                    );
+                  }
+
+                  // Handle error state
+                  if (state.uiStatus == Status.failure) {
+                    return Center(child: Text(state.errorMessage ?? "خطأ غير معروف"));
+                  }
+
+                  // Handle empty state only AFTER confirming success
+                  if (state.allMeds.isEmpty) {
+                    return const Center(child: Text("لا يوجد أدوية متاحة."));
+                  }
 
                 return Column(
                   mainAxisSize: MainAxisSize.min,
@@ -337,6 +395,9 @@ class _AddMedDialogState extends State<AddMedDialog> {
                         context.read<PatientBloc>().add(
                           AddGivenMed(medId: _selectedMed.id, quantity: quantity, patientId: widget.patientID, dosage: "not-set", context: context),
                         );
+                        setState(() {
+                          isLoading = true;
+                        });
                       },
                       child: const Text("إضافة"),
                     ),

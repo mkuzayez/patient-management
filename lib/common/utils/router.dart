@@ -9,7 +9,6 @@ import 'package:patient_managment/features/patients/presentation/pages/patients_
 import 'package:patient_managment/features/patients/presentation/pages/report_screen.dart';
 
 import '../../features/home/home_screen.dart';
-import '../../features/patients/domain/use_cases/get_all_patients.dart';
 import '../../features/patients/presentation/manager/meds_bloc/meds_bloc.dart';
 import '../../features/patients/presentation/manager/patients_bloc.dart';
 import '../../features/patients/presentation/pages/add_patient_screen.dart';
@@ -82,14 +81,14 @@ class AppRouter {
 
       GoRoute(
         path: '/patients/add-patient',
-        builder: (context, state) => BlocProvider.value(value: patientBloc!, child: const AddEditPatientScreen(patient: null, shouldInit: false,)),
+        builder: (context, state) => BlocProvider.value(value: patientBloc!, child: const AddEditPatientScreen(patient: null, shouldInit: false, isEditing: false,)),
       ),
 
       GoRoute(
         path: '/patients/edit-patient/:id',
         builder: (context, state) {
           final patientId = int.parse(state.pathParameters['id']!);
-          return BlocProvider.value(value: patientBloc!, child: AddEditPatientScreen(patient: null, patientId: patientId));
+          return BlocProvider.value(value: patientBloc!, child: AddEditPatientScreen(patient: patientBloc!.state.patients.firstWhere((element) => element.id == patientId,), patientId: patientId, isEditing: true,));
         },
       ),
     ],

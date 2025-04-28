@@ -1,4 +1,3 @@
-import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -41,6 +40,9 @@ class _PatientsScreenState extends State<PatientsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      floatingActionButton: FloatingActionButton(onPressed: () => GoRouterHelper(context).push('/patients/add-patient/'),
+      child: const Icon(Icons.add)
+      ),
       body: BlocConsumer<PatientBloc, PatientState>(
         listener: (context, state) {
           switch (state.actionStatus) {
@@ -80,18 +82,18 @@ class _PatientsScreenState extends State<PatientsScreen> {
                   },
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: SizedBox(
-                  width: double.maxFinite,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      GoRouterHelper(context).push('/patients/add-patient/');
-                    },
-                    child: const Text("إضافة مريض"),
-                  ),
-                ),
-              ),
+              // Padding(
+              //   padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              //   child: SizedBox(
+              //     width: double.maxFinite,
+              //     child: ElevatedButton(
+              //       onPressed: () {
+              //         GoRouterHelper(context).push('/patients/add-patient/');
+              //       },
+              //       child: const Text("إضافة مريض"),
+              //     ),
+              //   ),
+              // ),
               const SizedBox(height: 8),
               Expanded(
                 child: RefreshIndicator(

@@ -60,16 +60,39 @@ Widget _card({required BuildContext context, required int index}) {
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                //
-                // Checkbox(
-                //   value: context.watch<PatientBloc>().state.patients[index].isWaiting,
-                //   onChanged: (value) {
-                //     context.read<PatientBloc>().add(
-                //       PatientUpdate(patient: context.read<PatientBloc>().state.patients[index].copyWith(isWaiting: value)),
-                //     );
-                //   },
-                // ),
-              ],
+                IconButton(
+                  onPressed: () async {
+                    final shouldDelete = await showDialog<bool>(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: const Text('هل أنت متأكد؟'),
+                        content: const Text('هل تريد حذف هذا المريض؟ لا يمكن التراجع عن هذا الإجراء.'),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context, false),
+                            child: const Text('إلغاء'),
+                          ),
+                          TextButton(
+                            onPressed: () => Navigator.pop(context, true),
+                            child: const Text('حذف'),
+                          ),
+                        ],
+                      ),
+                    );
+
+                    if (shouldDelete == true) {
+                      if (context.mounted) {
+                      final patientId = context.read<PatientBloc>().state.patients[index].id;
+                      if (patientId != null) {
+                        context.read<PatientBloc>().add(PatientDelete(patientId));
+                      }
+                    }
+                    }
+                  },
+                  icon: const Icon(Icons.delete),
+                )              
+                ]
+                ,
             ),
 
             const SizedBox(height: 4),

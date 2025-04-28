@@ -22,6 +22,8 @@ class PatientState extends Equatable {
   // Error message (can be used for both UI and actions)
   final String? errorMessage;
 
+  final bool? shouldPop;
+
   const PatientState({
     this.uiStatus = Status.initial,
     this.actionStatus = Status.initial,
@@ -34,6 +36,7 @@ class PatientState extends Equatable {
     this.errorMessage,
     this.allMeds = const [],
     this.dialogStatus = Status.initial,
+    this.shouldPop = false
   });
 
   @override
@@ -65,6 +68,7 @@ class PatientState extends Equatable {
     bool clearSearchQuery = false,
     bool clearFailure = false,
     String? errorMessage,
+    bool? shouldPop,
   }) {
     return PatientState(
       uiStatus: uiStatus ?? this.uiStatus,
@@ -73,11 +77,12 @@ class PatientState extends Equatable {
       givenMeds: givenMeds ?? this.givenMeds,
       patients: patients ?? this.patients,
       searchedPatients: searchedPatients ?? null,
-      selectedPatient: clearSelectedPatient ? null : selectedPatient ?? this.selectedPatient,
+      selectedPatient: selectedPatient,
       searchQuery: clearSearchQuery ? null : searchQuery ?? this.searchQuery,
       failure: clearFailure ? null : failure ?? this.failure,
       errorMessage: errorMessage,
       allMeds: allMeds,
+      shouldPop: shouldPop ?? false,
     );
   }
 }

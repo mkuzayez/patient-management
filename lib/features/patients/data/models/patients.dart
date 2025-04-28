@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:convert';
 import 'package:equatable/equatable.dart';
 
 Patient patientFromJson(str) => Patient.fromJson(json.decode(str));

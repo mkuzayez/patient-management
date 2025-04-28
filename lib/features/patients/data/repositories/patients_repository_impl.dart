@@ -80,4 +80,17 @@ class PatientRepositoryImpl implements PatientRepository {
   Future<Either<Failure, Invoice>> getInvoice() {
     return patientDataSource.getReport();
   }
+
+
+  @override
+  Future<Either<Failure, Medicine>> updateMed({
+    required String id,
+    required String name,
+    required String dose,
+    required String scientificName,
+    required String company,
+    required String price,
+  }) {
+    return patientDataSource.addMed(name: name, dose: dose, scientificName: scientificName, company: company, price: price);
+  }
 }

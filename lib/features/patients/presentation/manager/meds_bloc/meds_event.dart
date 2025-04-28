@@ -27,3 +27,26 @@ class AddMedEvent extends MedsEvent {
   @override
   List<Object?> get props => [name, dose, scientificName, company, price];
 }
+
+
+class UpdateMedEvent extends MedsEvent {
+  final int id;
+  final String name;
+  final String dose;
+  final String scientificName;
+  final String company;
+  final String price;
+
+  const UpdateMedEvent({
+    required this.id,
+    required this.name,
+    required this.dose,
+    required this.scientificName,
+    required this.company,
+    required this.price,
+  });
+
+  @override
+  List<Object?> get props => [name, dose, scientificName, company, price];
+}
+

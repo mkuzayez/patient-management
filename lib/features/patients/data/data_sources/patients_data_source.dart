@@ -46,7 +46,7 @@ class PatientDataSource with ApiHandler {
   Future<Either<Failure, Patient>> updatePatient(Patient patient) {
     return handleApiCall(
       apiCall: () => httpClient.put('patients/${patient.id}/', data: patient.toJson()),
-      jsonConvert: (data) => Patient.fromJson(data),
+      jsonConvert: (data) => Patient.fromJson(data['data']),
     );
   }
 
@@ -115,6 +115,27 @@ class PatientDataSource with ApiHandler {
       ),
       jsonConvert: (data) {
         return Invoice.fromJson(data);
+      },
+    );
+  }
+
+
+  Future<Either<Failure, Medicine>> updateMed({
+    required String id,
+    required String name,
+    required String dose,
+    required String scientificName,
+    required String company,
+    required String price,
+  }) {
+    return handleApiCall(
+      apiCall:
+          () => httpClient.put(
+        '/medicines/$id',
+        data: {"name": name, "dose": dose, "scientific_name": scientificName, "company": company, "price": price},
+      ),
+      jsonConvert: (data) {
+        return Medicine.fromJson(data['data']);
       },
     );
   }
